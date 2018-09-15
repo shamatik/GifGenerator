@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Favorite Gifs</title>
+  <style type="text/css">
+    button,
+    div,
+    form,
+    input {
+      margin: 10px;
+    }
+
+    body{
+        background-image: url("psychedelic-cat.jpg");
+        background-repeat: repeat;
+    }
+
+    h1{
+        color: blueviolet;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+    <h1>Gif Search</h1>
+
+    <!-- Movies will get dumped here -->
+    <div id="movie-view"></div>
+    <div id="movies-view"></div>
+
+    <form id="movie-form">
+      <label for="movie-input">Add a Gif!</label>
+      <input type="text" id="movie-input"><br>
+
+      <!-- Button triggers new movie to be added -->
+      <input id="add-movie" type="submit" value="Add a Movie, Yo!">
+    </form>
+
+    <br>
+    <div id="gifs-appear-here"></div>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script type="text/javascript">
+      // Initial array of movies
+      var movies = ["The Matrix", "Kill Bill", "Frank Zappa", "Gremlins"];
+
+      // Function for displaying movie data
+      function renderButtons() {
+
+        $(movies).each(function(i,element) {
+          var b = $("<button>");
+            $(b).text(element);
+            $(b).attr("class","movie-b");
+          $("#movies-view").append(b);
+        });
+
+      }
+
+
+
+      // This function handles events where one button is clicked
+      $("#add-movie").on("click", function() {
+        event.preventDefault();
+        var movie = $("#movie-input").val();
+        movies.push(movie);
+        $("#movies-view").empty();
+        renderButtons();
+        click();
+
+      });
+      
+      renderButtons();
+      
+      function click() {
+        $(".movie-b").click(function() {
+          console.log(event);
+          var movie = event.srcElement.innerText;
+          $.ajax({
+            url: "https://api.giphy.com/v1/gifs/search",
+                method: "GET",
+                data:{q:movie,"api_key":"2E0td7QshXaYz3LAhXOoSIJm5rERcRth",limit:"10"}
+    
+            }).then(function(response) {
+              if(response.data.length == 10) {
+                console.log(response);
+                var results = response.data;
+
+          for (var i = 0; i < results.length; i++) {
+            var gifDiv = $("<div class='item'>");
+
+            var rating = results[i].rating;
+
+            var p = $("<p>").text("Rating: " + rating);
+
+            var personImage = $("<img>");
+            personImage.attr("src", results[i].images.fixed_height_still.url);
+            personImage.attr("data-still",results[i].images.fixed_height_still.url); 
+            personImage.attr("data-animate", results[i].images.fixed_height.url);
+            personImage.attr("data-state", "still");
+            personImage.attr("class", "gif");
+
+            gifDiv.prepend(p);
+            gifDiv.prepend(personImage);
+
+            $("#gifs-appear-here").prepend(gifDiv);
+          }
+        gifState();
+                
+                //$("#movie-view").html("<h5>"+response.rating+"</h5><br><img src='"+ response.images.fixed_height.url+"' >");
+              } else {
+                alert("Tu mama");
+              }
+            }); 
+        });
+      };
+    
+      
+      click();
+      
+      function gifState(){
+      $(".gif").on("click", function() {
+      // The attr jQuery method allows us to get or set the value of any attribute on our HTML element
+      var state = $(this).attr("data-state");
+      // If the clicked image's state is still, update its src attribute to what its data-animate value is.
+      // Then, set the image's data-state to animate
+      // Else set src to the data-still value
+      if (state === "still") {
+        $(this).attr("src", $(this).attr("data-animate"));
+        $(this).attr("data-state", "animate");
+      } else {
+        $(this).attr("src", $(this).attr("data-still"));
+        $(this).attr("data-state", "still");
+      }
+    });
+  };
+
+      
+
+      // Calling the renderButtons function to display the initial list of movies
+      
+    </script>
+  </div>
+</body>
+
+</html>
